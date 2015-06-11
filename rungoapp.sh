@@ -11,8 +11,8 @@ set -e
 app=$1
 
 if [[ "$app" == "" ]]; then
-	echo "require an app name"
-	exit 1
+	app=$(basename $(pwd))
+	echo "using app name: $app"
 fi
 
 echo "----------------------------"
