@@ -1,3 +1,4 @@
 set -e
+set -v
 
-cp rungoapp.sh /usr/bin/
+cp go-run-main.sh /usr/bin/grm
