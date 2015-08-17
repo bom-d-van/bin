@@ -1,0 +1,1 @@
+curl http://127.0.0.1:8080/css/app.css --silent -H "Accept-Encoding: gzip,deflate" --write-out "%{size_download}\n" --output /dev/null
