@@ -16,8 +16,10 @@ if [[ "$app" == "" ]]; then
 fi
 
 echo "----------------------------"
-echo go build -o $GOPATH/bin/$app
-go build -o "$GOPATH/bin/$app"
+# echo go build -o $GOPATH/bin/$app
+# go build -o "$GOPATH/bin/$app"
+echo go install
+go install
 
 # $apppid=$(cat $GOPATH/bin/$app.pid)
 # if ps -p $apppid > /dev/null; then
@@ -32,4 +34,4 @@ fi
 
 echo running $app
 echo "----------------------------"
-$app%
+$GOPATH/bin/$app
