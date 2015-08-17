@@ -1,6 +1,6 @@
 #
 # a script to use with entr in development
-# find app lib db config ../../qor/qor | entr -r rungoapp
+# find . -iname '*.go' | entr -r grm
 #
 
 set -e
