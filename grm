@@ -4,7 +4,7 @@
 # It build the program; if succeed, kill the old running process;
 # if not, do nothing.
 #
-# grm [-n|--name name] [-b|--build-options] [file1.go [file2.go [...]]]
+# grm [-n|--name name] [-b|--build-options options] [file1.go [file2.go [...]]]
 #
 # Examples
 #     # run a package
@@ -76,7 +76,7 @@ if pgrep $app_name > /dev/null; then
 		echo 'more than one progress matched by grm, please use a more specific name to avoid accidental killings.'
 		exit 1
 	fi
-	echo kill $app_name
+	echo "kill $app_name"
 	pkill $app_name
 fi
 
