@@ -1,37 +1,84 @@
+#!/usr/bin/env bash
 #
-# a script to use with entr in development
-# find . -iname '*.go' | entr -r grm
+# grm is a script to use with entr in Go app development.
+# It build the program; if succeed, kill the old running process;
+# if not, do nothing.
+#
+# grm [-n|--name name] [-b|--build-options] [file1.go [file2.go [...]]]
+#
+# Examples
+#     # run a package
+#     grm
+#
+#     # run a file
+#     grm tt.go
+#
+#     # ruan multiple fils with tags and names
+#     grm -name gaia -o '-tags t1,t2' tt.go cc.go
+#
+# Use it with entr:
+#     find . -iname '*.go' | entr -r grm
 #
 
 set -e
 
-# echo go-bindata -o ui.go -ignore .module-cache -dev ui/...
-# go-bindata -o ui.go -ignore .module-cache -dev ui/...
+arguments=()
+while [[ $# > 0 ]]; do
+	key="$1"
+	case $key in
+	-n|--name)
+		name="$2"
+		shift # past argument
+		;;
+	-b|--build-options)
+		build_options="$2"
+		shift # past argument
+		;;
+	*)
+		if [[ -f "$1" ]]; then
+			arguments+=($1)
+		fi
+		;;
+	esac
+	shift # past argument or value
+done
+arguments+=($*)
 
-app=$1
-
-if [[ "$app" == "" ]]; then
-	app=$(basename $(pwd))
-	echo "using app name: $app"
+if [[ "$name" == "" ]]; then
+	app_name=$(basename $(pwd))
+else
+	app_name=$name
 fi
 
-echo "----------------------------"
-# echo go build -o $GOPATH/bin/$app
-# go build -o "$GOPATH/bin/$app"
-echo go install
-go install
+echo '----------------------------'
+echo "name=$app_name"
+[ "$build_options" != "" ] && echo "build_options=$build_options"
+[ "$files" != "" ] && echo "files=${arguments[@]}"
 
-# $apppid=$(cat $GOPATH/bin/$app.pid)
-# if ps -p $apppid > /dev/null; then
-# 	echo kill $app
-# 	kill -9 $apppid
-# fi
-
-if pgrep $app > /dev/null; then
-	echo kill $app
-	pkill $app
+# build app
+if [[ "${#arguments[@]}" == 0 ]]; then
+	if [[ "$name" == "" ]]; then
+		echo 'go install'
+		go install $build_options
+	else
+		echo "go build -o $GOPATH/bin/$app_name"
+		go build -o $GOPATH/bin/$app_name $build_options
+	fi
+else
+	echo "go build -o $GOPATH/bin/$app_name $build_options ${arguments[@]}"
+	go build -o $GOPATH/bin/$app_name $build_options ${arguments[@]}
 fi
 
-echo running $app
-echo "----------------------------"
-$GOPATH/bin/$app
+# kill old app
+if pgrep $app_name > /dev/null; then
+	count=$(pgrep $app_name | wc -l)
+	if (( $count > 1 )); then
+		echo 'more than one progress matched by grm, please use a more specific name to avoid accidental killings.'
+		exit 1
+	fi
+	echo kill $app_name
+	pkill $app_name
+fi
+
+echo "running $app_name"
+$GOPATH/bin/$app_name
