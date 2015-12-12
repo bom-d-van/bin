@@ -1,8 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 func main() {
 	fmt.Println("a")
-	// time.Sleep(time.Second * 10)
+	if len(os.Args) > 1 {
+		fmt.Println("args:", strings.Join(os.Args[1:], " "))
+	}
 }

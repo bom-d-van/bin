@@ -4,7 +4,7 @@
 # It build the program; if succeed, kill the old running process;
 # if not, do nothing.
 #
-# grm [-n|--name name] [-b|--build-options options] [file1.go [file2.go [...]]]
+# grm [-n|--name name] [-b|--build-options options] [file1.go [file2.go [...]]] [options]
 #
 # Examples
 #     # run a package
@@ -19,10 +19,22 @@
 # Use it with entr:
 #     find . -iname '*.go' | entr -r grm
 #
+# Installation
+#     curl https://raw.githubusercontent.com/bom-d-van/bin/master/grm > $GOPATH/bin/grm
+#
 
 set -e
 
+files=()
 arguments=()
+function update_files_or_args {
+	if [[ -f "$1" ]]; then
+		files+=($1)
+	else
+		arguments+=($1)
+	fi
+}
+
 while [[ $# > 0 ]]; do
 	key="$1"
 	case $key in
@@ -35,14 +47,13 @@ while [[ $# > 0 ]]; do
 		shift # past argument
 		;;
 	*)
-		if [[ -f "$1" ]]; then
-			arguments+=($1)
-		fi
+		update_files_or_args "$1"
 		;;
 	esac
 	shift # past argument or value
 done
-arguments+=($*)
+# files+=($*)
+update_files_or_args "$*"
 
 if [[ "$name" == "" ]]; then
 	app_name=$(basename $(pwd))
@@ -53,10 +64,11 @@ fi
 echo '----------------------------'
 echo "name=$app_name"
 [ "$build_options" != "" ] && echo "build_options=$build_options"
-[ "$files" != "" ] && echo "files=${arguments[@]}"
+[ "$files" != "" ] && echo "files=${files[@]}"
+[ "$arguments" != "" ] && echo "arguments=${arguments[@]}"
 
 # build app
-if [[ "${#arguments[@]}" == 0 ]]; then
+if [[ "${#files[@]}" == 0 ]]; then
 	if [[ "$name" == "" ]]; then
 		echo 'go install'
 		go install $build_options
@@ -65,8 +77,8 @@ if [[ "${#arguments[@]}" == 0 ]]; then
 		go build -o $GOPATH/bin/$app_name $build_options
 	fi
 else
-	echo "go build -o $GOPATH/bin/$app_name $build_options ${arguments[@]}"
-	go build -o $GOPATH/bin/$app_name $build_options ${arguments[@]}
+	echo "go build -o $GOPATH/bin/$app_name $build_options ${files[@]}"
+	go build -o $GOPATH/bin/$app_name $build_options ${files[@]}
 fi
 
 # kill old app
@@ -80,5 +92,5 @@ if pgrep $app_name > /dev/null; then
 	pkill $app_name
 fi
 
-echo "running $app_name"
-$GOPATH/bin/$app_name
+echo "running $app_name ${arguments[@]}"
+$GOPATH/bin/$app_name ${arguments[@]}
