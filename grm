@@ -61,7 +61,8 @@ else
 	app_name=$name
 fi
 
-echo '----------------------------'
+mark='----------------------------'
+echo "$mark"
 echo "name=$app_name"
 [ "$build_options" != "" ] && echo "build_options=$build_options"
 [ "$files" != "" ] && echo "files=${files[@]}"
@@ -93,4 +94,5 @@ if pgrep $app_name > /dev/null; then
 fi
 
 echo "running $app_name ${arguments[@]}"
+echo "$mark"
 $GOPATH/bin/$app_name ${arguments[@]}

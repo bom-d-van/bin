@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# sgrm: simple-grm
+
+FILES=()
+
+for file in `go list -f '{{.Imports}}' ./... | tr -d '[]' | tr ' ' '\n' | sort | uniq`; do
+	if [ -d "$GOPATH/src/$file" ]; then
+		FILES+=("$GOPATH/src/$file")
+	fi
+done
+
+find . ${FILES[@]} -iname '*.go' | entr -dr grm
