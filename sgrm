@@ -2,8 +2,12 @@
 #
 # sgrm: simple-grm
 #
+# Requirements: grm, entr, go-list
+#
 # Installation:
 #
+# 	curl https://raw.githubusercontent.com/bom-d-van/bin/master/grm >> $GOPATH/bin/grm
+# 	chmod +x $GOPATH/bin/grm
 # 	curl https://raw.githubusercontent.com/bom-d-van/bin/master/sgrm >> $GOPATH/bin/sgrm
 # 	chmod +x $GOPATH/bin/sgrm
 #
