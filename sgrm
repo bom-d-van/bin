@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 #
 # sgrm: simple-grm
+#
+# Installation:
+#
+# 	curl https://raw.githubusercontent.com/bom-d-van/bin/master/sgrm >> $GOPATH/bin/sgrm
+# 	chmod +x $GOPATH/bin/sgrm
+#
 
 FILES=()
 
