@@ -12,12 +12,23 @@
 # 	chmod +x $GOPATH/bin/sgrm
 #
 
-FILES=()
+set -e
+
+PKGS=()
 
 for file in `go list -f '{{.Imports}}' ./... | tr -d '[]' | tr ' ' '\n' | sort | uniq`; do
 	if [ -d "$GOPATH/src/$file" ]; then
-		FILES+=("$GOPATH/src/$file")
+		PKGS+=("$GOPATH/src/$file")
 	fi
 done
 
-find . ${FILES[@]} -iname '*.go' | entr -dr grm
+files=$(find . ${PKGS[@]} \
+	-a -not -path './node_modules/*' \
+	-a -not -path './.harp/*' \
+	-a -not -path './.git/*' \
+	-a -not -path './tmp/*' \
+	-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yaml' \) \
+	| sort | uniq)
+
+echo "total: $(echo "$files" | wc -l)"
+echo "$files" | entr -r grm $@
