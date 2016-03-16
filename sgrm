@@ -14,21 +14,29 @@
 
 set -e
 
-PKGS=()
-
-for file in `go list -f '{{.Imports}}' ./... | tr -d '[]' | tr ' ' '\n' | sort | uniq`; do
-	if [ -d "$GOPATH/src/$file" ]; then
-		PKGS+=("$GOPATH/src/$file")
-	fi
-done
-
-files=$(find . ${PKGS[@]} \
-	-a -not -path './node_modules/*' \
-	-a -not -path './.harp/*' \
-	-a -not -path './.git/*' \
-	-a -not -path './tmp/*' \
-	-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yaml' \) \
-	| sort | uniq)
+if [[ -d 'vendor' ]]; then
+	files=$(find . \
+		-a -not -path './node_modules/*' \
+		-a -not -path './.harp/*' \
+		-a -not -path './.git/*' \
+		-a -not -path './tmp/*' \
+		-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' -o -iname '*.tmpl' \) \
+		| sort | uniq)
+else
+	PKGS=()
+	for file in `go list -f '{{.Imports}}' ./... | tr -d '[]' | tr ' ' '\n' | sort | uniq`; do
+		if [ -d "$GOPATH/src/$file" ]; then
+			PKGS+=("$GOPATH/src/$file")
+		fi
+	done
+	files=$(find . ${PKGS[@]} \
+		-a -not -path './node_modules/*' \
+		-a -not -path './.harp/*' \
+		-a -not -path './.git/*' \
+		-a -not -path './tmp/*' \
+		-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' -o -iname '*.tmpl' \) \
+		| sort | uniq)
+fi
 
 echo "total: $(echo "$files" | wc -l)"
 echo "$files" | entr -r grm $@
