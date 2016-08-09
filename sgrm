@@ -14,29 +14,50 @@
 
 set -e
 
-if [[ -d 'vendor' ]]; then
-	files=$(find . \
-		-a -not -path './node_modules/*' \
-		-a -not -path './.harp/*' \
-		-a -not -path './.git/*' \
-		-a -not -path './tmp/*' \
-		-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' -o -iname '*.tmpl' \) \
-		| sort | uniq)
+# TODO: to refactor
+if [[ "$SGRM_ALL" == "1" ]]; then
+	if [[ -d 'vendor' ]]; then
+		files=$(find . \
+			-a -not -path '*/node_modules/*' \
+			-a -not -path '*/.harp/*' \
+			-a -not -path '*/.git/*' \
+			-a -not -path '*/tmp/*' \
+			-a -not -iname '*_test.go' \
+			-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' \) \
+			| sort | uniq)
+			# -o -iname '*.tmpl'
+	else
+		PKGS=()
+		for file in `go list -f '{{.Imports}}' ./... | tr -d '[]' | tr ' ' '\n' | sort | uniq`; do
+			if [ -d "$GOPATH/src/$file" ]; then
+				PKGS+=("$GOPATH/src/$file")
+			fi
+		done
+		files=$(find . ${PKGS[@]} \
+			-a -not -path '*/node_modules/*' \
+			-a -not -path '*/vendor/*' \
+			-a -not -path '*/.harp/*' \
+			-a -not -path '*/.git/*' \
+			-a -not -path '*/tmp/*' \
+			-a -not -iname '*_test.go' \
+			-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' \) \
+			| sort | uniq)
+			# -o -iname '*.tmpl'
+	fi
 else
-	PKGS=()
-	for file in `go list -f '{{.Imports}}' ./... | tr -d '[]' | tr ' ' '\n' | sort | uniq`; do
-		if [ -d "$GOPATH/src/$file" ]; then
-			PKGS+=("$GOPATH/src/$file")
-		fi
-	done
-	files=$(find . ${PKGS[@]} \
-		-a -not -path './node_modules/*' \
-		-a -not -path './.harp/*' \
-		-a -not -path './.git/*' \
-		-a -not -path './tmp/*' \
-		-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' -o -iname '*.tmpl' \) \
+	files=$(find . \
+		-a -not -path '*/node_modules/*' \
+		-a -not -path '*/.harp/*' \
+		-a -not -path '*/.git/*' \
+		-a -not -path '*/tmp/*' \
+		-a -not -iname '*_test.go' \
+		-a -not -path '*/vendor/*' \
+		-a \( -iname '*.go' -o -iname '*.json' -o -iname '*.yml' -o -iname '*.yaml' \) \
 		| sort | uniq)
+		# -o -iname '*.tmpl'
 fi
 
+# echo $files | tr ' ' '\n'
+
 echo "total: $(echo "$files" | wc -l)"
-echo "$files" | entr -r grm $@
+echo "$files" | entr -r grm $@ # $@ passes all the sgrm arguments onto grm
