@@ -1,0 +1,39 @@
+http://entrproject.org/
+
+The separation of file looking up and changes monitoring brings an excellent and wonderful experiences (with a nuance level of irritation of course, it's man-made software).
+
+How to use it with Go programs? If you don't mind re-installing and restarting program when you are making projects to your program, just do:
+
+```
+# with ls
+ls '*.go' | entr -dr go run main.go
+
+# with find
+find . -iname '*.go' | entr -dr go run main.go
+```
+
+If you don't want to restart your program when there are compilation errors, you need some shell powers.
+
+```
+function grm {
+	echo '----------------------------'
+	echo 'go install'
+	go install
+
+	app=$(basename $(pwd))
+
+	if pgrep $app > /dev/null; then
+		echo kill $app
+		pkill $app
+	fi
+
+	echo "running $app"
+	$GOPATH/bin/$app
+}
+
+find . -iname '*.go' | entr -dr grm
+```
+
+Note: the script above makes tons of asumptions.
+
+
