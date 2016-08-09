@@ -62,8 +62,8 @@ else
 fi
 
 mark='----------------------------'
-echo "$mark"
-echo "name=$app_name"
+echo "[grm] $mark"
+echo "[grm] name=$app_name"
 [ "$build_options" != "" ] && echo "build_options=$build_options"
 [ "$files" != "" ] && echo "files=${files[@]}"
 [ "$arguments" != "" ] && echo "arguments=${arguments[@]}"
@@ -71,28 +71,35 @@ echo "name=$app_name"
 # build app
 if [[ "${#files[@]}" == 0 ]]; then
 	if [[ "$name" == "" ]]; then
-		echo 'go install'
+		echo '[grm] go install'
 		go install $build_options
 	else
-		echo "go build -o $GOPATH/bin/$app_name"
+		echo "[grm] go build -o $GOPATH/bin/$app_name"
 		go build -o $GOPATH/bin/$app_name $build_options
 	fi
 else
-	echo "go build -o $GOPATH/bin/$app_name $build_options ${files[@]}"
+	echo "[grm] go build -o $GOPATH/bin/$app_name $build_options ${files[@]}"
 	go build -o $GOPATH/bin/$app_name $build_options ${files[@]}
 fi
 
 # kill old app
-if pgrep $app_name > /dev/null; then
-	count=$(pgrep $app_name | wc -l)
-	if (( $count > 1 )); then
-		echo 'more than one progress matched by grm, please use a more specific name to avoid accidental killings.'
-		exit 1
+function kill_old {
+	echo "[grm] kill existing process"
+	if pgrep $app_name > /dev/null; then
+		count=$(pgrep $app_name | wc -l)
+		if (( $count > 1 )); then
+			echo 'more than one progress matched by grm, please use a more specific name to avoid accidental killings.'
+			exit 1
+		fi
+		echo "[grm] kill $app_name"
+		pkill $app_name
 	fi
-	echo "kill $app_name"
-	pkill $app_name
-fi
+}
 
-echo "running $app_name ${arguments[@]}"
-echo "$mark"
+kill_old
+
+# trap kill_old 1 2 3 6 15
+
+echo "[grm] running $app_name ${arguments[@]}"
+echo "[grm] $mark"
 $GOPATH/bin/$app_name ${arguments[@]}
