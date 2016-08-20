@@ -23,7 +23,7 @@
 #     curl https://raw.githubusercontent.com/bom-d-van/bin/master/grm > $GOPATH/bin/grm
 #
 
-set -e
+# set -e
 
 files=()
 arguments=()
@@ -82,17 +82,19 @@ else
 	go build -o $GOPATH/bin/$app_name $build_options ${files[@]}
 fi
 
+echo $app_name
+
 # kill old app
 function kill_old {
-	echo "[grm] kill existing process"
-	if pgrep $app_name > /dev/null; then
-		count=$(pgrep $app_name | wc -l)
+	echo "[grm] killing existing process"
+	if pgrep -f "$GOPATH/bin/$app_name" > /dev/null; then
+		count=$(pgrep -f "$GOPATH/bin/$app_name" | wc -l)
 		if (( $count > 1 )); then
 			echo 'more than one progress matched by grm, please use a more specific name to avoid accidental killings.'
 			exit 1
 		fi
-		echo "[grm] kill $app_name"
-		pkill $app_name
+		echo "[grm] $app_name (pid: $(pgrep -f "$GOPATH/bin/$app_name"))"
+		kill -9 $(pgrep -f "$GOPATH/bin/$app_name")
 	fi
 }
 
